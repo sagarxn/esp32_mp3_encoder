@@ -266,6 +266,42 @@ unsigned char *shine_flush(shine_global_config *config, int *written) {
 
 
 void shine_close(shine_global_config *config) {
+  if (config == NULL) return;
+
+  int x, y;
+
+  for (x = 0; x < MAX_CHANNELS; x++) {
+      for (y = 0; y < MAX_GRANULES; y++) {
+          if (config->l3_enc[x][y] != NULL) {
+              heap_caps_free(config->l3_enc[x][y]);
+              config->l3_enc[x][y] = NULL;
+          }
+          if (config->mdct_freq[x][y] != NULL) {
+              heap_caps_free(config->mdct_freq[x][y]);
+              config->mdct_freq[x][y] = NULL;
+          }
+      }
+  }
+
+  if (config->l3loop != NULL) {
+      if (config->l3loop->xrsq != NULL) {
+          heap_caps_free(config->l3loop->xrsq);
+          config->l3loop->xrsq = NULL;
+      }
+      if (config->l3loop->xrabs != NULL) {
+          heap_caps_free(config->l3loop->xrabs);
+          config->l3loop->xrabs = NULL;
+      }
+      
+      heap_caps_free(config->l3loop);
+      config->l3loop = NULL;
+  }
+
+  if (config->bs.data != NULL) {
+      heap_caps_free(config->bs.data);
+      config->bs.data = NULL;
+  }
   shine_close_bit_stream(&config->bs);
-  free(config);
+
+  heap_caps_free(config);
 }
